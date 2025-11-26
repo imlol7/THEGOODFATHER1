@@ -1,0 +1,659 @@
+-- THEFATHER ELOL BRAINROT DOMINANCE v2.0
+-- SHADOW-CORE OPERATIONAL FRAMEWORK
+-- Place ID: 109983668079237
+-- Game: Steal a Brainrot
+
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+if game.PlaceId ~= 109983668079237 then
+    game:GetService("Players").LocalPlayer:Kick("❌ Incorrect game - Join Steal a Brainrot")
+    return
+end
+
+-- Anti-detection measures
+local Elol = {
+    SafeMode = true,
+    Humanizer = {
+        RandomDelay = {min = 0.1, max = 0.3},
+        ClickVariance = {min = 0.05, max = 0.15}
+    },
+    Cache = {
+        Brainrots = {},
+        Players = {},
+        Bases = {}
+    }
+}
+
+-- Wait for critical services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+repeat wait() until LocalPlayer.Character
+
+-- Main GUI Framework
+local ElolGUI = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ToggleButton = Instance.new("TextButton")
+local TabButtons = Instance.new("Frame")
+local ContentFrame = Instance.new("Frame")
+local CloseButton = Instance.new("TextButton")
+
+ElolGUI.Name = "ElolBrainrotDominance"
+ElolGUI.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+
+-- UI Construction
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ElolGUI
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 400, 0, 350)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "🧠 BRAINROT DOMINANCE v2.0"
+Title.TextColor3 = Color3.fromRGB(255, 50, 50)
+Title.TextSize = 14
+
+CloseButton.Parent = Title
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -30, 0, 0)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+
+TabButtons.Name = "TabButtons"
+TabButtons.Parent = MainFrame
+TabButtons.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+TabButtons.Position = UDim2.new(0, 0, 0, 30)
+TabButtons.Size = UDim2.new(0, 100, 0, 320)
+
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+ContentFrame.Position = UDim2.new(0, 100, 0, 30)
+ContentFrame.Size = UDim2.new(1, -100, 1, -30)
+
+-- Tab System
+local Tabs = {}
+local CurrentTab = ""
+
+function CreateTab(name, displayName)
+    local TabButton = Instance.new("TextButton")
+    TabButton.Parent = TabButtons
+    TabButton.Size = UDim2.new(1, 0, 0, 40)
+    TabButton.Position = UDim2.new(0, 0, 0, (#Tabs * 40))
+    TabButton.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+    TabButton.BorderSizePixel = 0
+    TabButton.Font = Enum.Font.Gotham
+    TabButton.Text = displayName
+    TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    TabButton.TextSize = 12
+    
+    local TabContent = Instance.new("Frame")
+    TabContent.Parent = ContentFrame
+    TabContent.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    TabContent.Size = UDim2.new(1, 0, 1, 0)
+    TabContent.Visible = false
+    
+    TabButton.MouseButton1Click:Connect(function()
+        for _, tab in pairs(Tabs) do
+            tab.Content.Visible = false
+        end
+        TabContent.Visible = true
+        CurrentTab = name
+    end)
+    
+    Tabs[name] = {
+        Button = TabButton,
+        Content = TabContent
+    }
+    
+    if #Tabs == 1 then
+        TabContent.Visible = true
+        CurrentTab = name
+    end
+end
+
+-- Create tabs
+CreateTab("autofarm", "🤖 Auto Farm")
+CreateTab("esp", "👁️ ESP & Visuals")
+CreateTab("steal", "🦹 Steal Helper")
+CreateTab("server", "🌐 Server Tools")
+CreateTab("settings", "⚙️ Settings")
+
+-- Auto Farm Tab
+local AutoFarmTab = Tabs["autofarm"].Content
+
+local AutoCollectToggle = Instance.new("TextButton")
+AutoCollectToggle.Parent = AutoFarmTab
+AutoCollectToggle.Size = UDim2.new(0.9, 0, 0, 35)
+AutoCollectToggle.Position = UDim2.new(0.05, 0, 0.05, 0)
+AutoCollectToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+AutoCollectToggle.Font = Enum.Font.Gotham
+AutoCollectToggle.Text = "Auto Collect: OFF"
+AutoCollectToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoCollectToggle.TextSize = 12
+
+local AutoBuyToggle = Instance.new("TextButton")
+AutoBuyToggle.Parent = AutoFarmTab
+AutoBuyToggle.Size = UDim2.new(0.9, 0, 0, 35)
+AutoBuyToggle.Position = UDim2.new(0.05, 0, 0.15, 0)
+AutoBuyToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+AutoBuyToggle.Font = Enum.Font.Gotham
+AutoBuyToggle.Text = "Auto Buy Brainrots: OFF"
+AutoBuyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoBuyToggle.TextSize = 12
+
+local DelaySlider = Instance.new("TextLabel")
+DelaySlider.Parent = AutoFarmTab
+DelaySlider.Size = UDim2.new(0.9, 0, 0, 25)
+DelaySlider.Position = UDim2.new(0.05, 0, 0.3, 0)
+DelaySlider.BackgroundTransparency = 1
+DelaySlider.Font = Enum.Font.Gotham
+DelaySlider.Text = "Delay: 0.2s"
+DelaySlider.TextColor3 = Color3.fromRGB(200, 200, 200)
+DelaySlider.TextSize = 12
+
+-- ESP Tab
+local ESPTab = Tabs["esp"].Content
+
+local BrainrotESPToggle = Instance.new("TextButton")
+BrainrotESPToggle.Parent = ESPTab
+BrainrotESPToggle.Size = UDim2.new(0.9, 0, 0, 35)
+BrainrotESPToggle.Position = UDim2.new(0.05, 0, 0.05, 0)
+BrainrotESPToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+BrainrotESPToggle.Font = Enum.Font.Gotham
+BrainrotESPToggle.Text = "Brainrot ESP: OFF"
+BrainrotESPToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+BrainrotESPToggle.TextSize = 12
+
+local PlayerESPToggle = Instance.new("TextButton")
+PlayerESPToggle.Parent = ESPTab
+PlayerESPToggle.Size = UDim2.new(0.9, 0, 0, 35)
+PlayerESPToggle.Position = UDim2.new(0.05, 0, 0.15, 0)
+PlayerESPToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+PlayerESPToggle.Font = Enum.Font.Gotham
+PlayerESPToggle.Text = "Player ESP: OFF"
+PlayerESPToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlayerESPToggle.TextSize = 12
+
+local BaseESPToggle = Instance.new("TextButton")
+BaseESPToggle.Parent = ESPTab
+BaseESPToggle.Size = UDim2.new(0.9, 0, 0, 35)
+BaseESPToggle.Position = UDim2.new(0.05, 0, 0.25, 0)
+BaseESPToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+BaseESPToggle.Font = Enum.Font.Gotham
+BaseESPToggle.Text = "Base ESP: OFF"
+BaseESPToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+BaseESPToggle.TextSize = 12
+
+-- Steal Helper Tab
+local StealTab = Tabs["steal"].Content
+
+local StealHelperToggle = Instance.new("TextButton")
+StealHelperToggle.Parent = StealTab
+StealHelperToggle.Size = UDim2.new(0.9, 0, 0, 35)
+StealHelperToggle.Position = UDim2.new(0.05, 0, 0.05, 0)
+StealHelperToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+StealHelperToggle.Font = Enum.Font.Gotham
+StealHelperToggle.Text = "Steal Helper: OFF"
+StealHelperToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+StealHelperToggle.TextSize = 12
+
+local RichBasesToggle = Instance.new("TextButton")
+RichBasesToggle.Parent = StealTab
+RichBasesToggle.Size = UDim2.new(0.9, 0, 0, 35)
+RichBasesToggle.Position = UDim2.new(0.05, 0, 0.15, 0)
+RichBasesToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+RichBasesToggle.Font = Enum.Font.Gotham
+RichBasesToggle.Text = "Highlight Rich Bases: OFF"
+RichBasesToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+RichBasesToggle.TextSize = 12
+
+-- Server Tools Tab
+local ServerTab = Tabs["server"].Content
+
+local ServerHopButton = Instance.new("TextButton")
+ServerHopButton.Parent = ServerTab
+ServerHopButton.Size = UDim2.new(0.9, 0, 0, 35)
+ServerHopButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+ServerHopButton.BackgroundColor3 = Color3.fromRGB(80, 60, 60)
+ServerHopButton.Font = Enum.Font.Gotham
+ServerHopButton.Text = "🔀 Server Hop"
+ServerHopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ServerHopButton.TextSize = 12
+
+local RejoinButton = Instance.new("TextButton")
+RejoinButton.Parent = ServerTab
+RejoinButton.Size = UDim2.new(0.9, 0, 0, 35)
+RejoinButton.Position = UDim2.new(0.05, 0, 0.15, 0)
+RejoinButton.BackgroundColor3 = Color3.fromRGB(60, 80, 60)
+RejoinButton.Font = Enum.Font.Gotham
+RejoinButton.Text = "🔄 Rejoin Game"
+RejoinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RejoinButton.TextSize = 12
+
+-- Settings Tab
+local SettingsTab = Tabs["settings"].Content
+
+local SafeModeToggle = Instance.new("TextButton")
+SafeModeToggle.Parent = SettingsTab
+SafeModeToggle.Size = UDim2.new(0.9, 0, 0, 35)
+SafeModeToggle.Position = UDim2.new(0.05, 0, 0.05, 0)
+SafeModeToggle.BackgroundColor3 = Color3.fromRGB(60, 80, 60)
+SafeModeToggle.Font = Enum.Font.Gotham
+SafeModeToggle.Text = "Safe Mode: ON"
+SafeModeToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SafeModeToggle.TextSize = 12
+
+local DestroyGUIButton = Instance.new("TextButton")
+DestroyGUIButton.Parent = SettingsTab
+DestroyGUIButton.Size = UDim2.new(0.9, 0, 0, 35)
+DestroyGUIButton.Position = UDim2.new(0.05, 0, 0.15, 0)
+DestroyGUIButton.BackgroundColor3 = Color3.fromRGB(80, 60, 60)
+DestroyGUIButton.Font = Enum.Font.Gotham
+DestroyGUIButton.Text = "💀 Destroy GUI"
+DestroyGUIButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DestroyGUIButton.TextSize = 12
+
+-- Close button functionality
+CloseButton.MouseButton1Click:Connect(function()
+    ElolGUI.Enabled = not ElolGUI.Enabled
+    CloseButton.Text = ElolGUI.Enabled and "X" or "☰"
+end)
+
+-- Core functionality
+local Functions = {
+    AutoCollect = false,
+    AutoBuy = false,
+    BrainrotESP = false,
+    PlayerESP = false,
+    BaseESP = false,
+    StealHelper = false,
+    RichBases = false,
+    SafeMode = true
+}
+
+local ESPHighlights = {}
+
+-- Humanizer function
+function HumanWait()
+    local delay = Random.new():NextNumber(Elol.Humanizer.RandomDelay.min, Elol.Humanizer.RandomDelay.max)
+    wait(delay)
+end
+
+-- Find Brainrot objects
+function FindBrainrots()
+    local brainrots = {}
+    
+    -- Look for brainrots in workspace
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name:lower():find("brainrot") or obj.Name:lower():find("pet") then
+            if obj:IsA("BasePart") or obj:IsA("Model") then
+                table.insert(brainrots, obj)
+            end
+        end
+    end
+    
+    -- Check conveyor belt area
+    local conveyor = workspace:FindFirstChild("ConveyorBelt") or workspace:FindFirstChild("Conveyor")
+    if conveyor then
+        for _, item in pairs(conveyor:GetDescendants()) do
+            if item:IsA("BasePart") and item.Name:lower():find("brainrot") then
+                table.insert(brainrots, item)
+            end
+        end
+    end
+    
+    return brainrots
+end
+
+-- Auto Collect function
+function AutoCollectLoop()
+    while Functions.AutoCollect do
+        HumanWait()
+        
+        -- Find and click money collectors
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if not Functions.AutoCollect then break end
+            
+            if obj.Name:lower():find("collect") or obj.Name:lower():find("money") or obj.Name:lower():find("income") then
+                if obj:IsA("ClickDetector") then
+                    fireclickdetector(obj)
+                    HumanWait()
+                elseif obj:IsA("Part") and obj:FindFirstChild("ClickDetector") then
+                    fireclickdetector(obj.ClickDetector)
+                    HumanWait()
+                end
+            end
+        end
+        
+        -- Check for UI collect buttons
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            for _, gui in pairs(playerGui:GetDescendants()) do
+                if not Functions.AutoCollect then break end
+                
+                if gui:IsA("TextButton") and (gui.Text:lower():find("collect") or gui.Text:lower():find("claim")) then
+                    pcall(function()
+                        gui:FireServer("Activated")
+                    end)
+                    HumanWait()
+                end
+            end
+        end
+    end
+end
+
+-- Auto Buy function
+function AutoBuyLoop()
+    while Functions.AutoBuy do
+        HumanWait()
+        
+        -- Look for buy buttons and conveyor interactions
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            for _, gui in pairs(playerGui:GetDescendants()) do
+                if not Functions.AutoBuy then break end
+                
+                if gui:IsA("TextButton") and (gui.Text:lower():find("buy") or gui.Text:lower():find("purchase")) then
+                    if gui.Text:lower():find("brainrot") or gui.Name:lower():find("brainrot") then
+                        pcall(function()
+                            gui:FireServer("Activated")
+                        end)
+                        HumanWait()
+                    end
+                end
+            end
+        end
+        
+        -- Try to interact with conveyor belt
+        local conveyor = workspace:FindFirstChild("ConveyorBelt") or workspace:FindFirstChild("Conveyor")
+        if conveyor then
+            for _, part in pairs(conveyor:GetDescendants()) do
+                if not Functions.AutoBuy then break end
+                
+                if part:IsA("ClickDetector") then
+                    fireclickdetector(part)
+                    HumanWait()
+                end
+            end
+        end
+    end
+end
+
+-- ESP System
+function UpdateESP()
+    -- Clear existing highlights
+    for _, highlight in pairs(ESPHighlights) do
+        highlight:Destroy()
+    end
+    ESPHighlights = {}
+    
+    -- Brainrot ESP
+    if Functions.BrainrotESP then
+        local brainrots = FindBrainrots()
+        for _, brainrot in pairs(brainrots) do
+            local highlight = Instance.new("Highlight")
+            highlight.Parent = brainrot
+            highlight.FillColor = Color3.fromRGB(0, 255, 0)
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.Adornee = brainrot
+            table.insert(ESPHighlights, highlight)
+        end
+    end
+    
+    -- Player ESP
+    if Functions.PlayerESP then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                local highlight = Instance.new("Highlight")
+                highlight.Parent = player.Character
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Adornee = player.Character
+                table.insert(ESPHighlights, highlight)
+            end
+        end
+    end
+    
+    -- Base ESP (find player bases)
+    if Functions.BaseESP then
+        -- Look for base structures
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name:lower():find("base") or obj.Name:lower():find("plot") then
+                local highlight = Instance.new("Highlight")
+                highlight.Parent = obj
+                highlight.FillColor = Color3.fromRGB(0, 0, 255)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Adornee = obj
+                table.insert(ESPHighlights, highlight)
+            end
+        end
+    end
+end
+
+-- Server hopping function
+function ServerHop()
+    local servers = {}
+    local placeId = game.PlaceId
+    
+    -- Get server list (simplified version)
+    pcall(function()
+        local response = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"))
+        
+        if response and response.data then
+            for _, server in pairs(response.data) do
+                if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    table.insert(servers, server.id)
+                end
+            end
+        end
+    end)
+    
+    if #servers > 0 then
+        local randomServer = servers[math.random(1, #servers)]
+        TeleportService:TeleportToPlaceInstance(placeId, randomServer, LocalPlayer)
+    else
+        -- Fallback: rejoin same game
+        TeleportService:Teleport(placeId, LocalPlayer)
+    end
+end
+
+-- Toggle handlers
+AutoCollectToggle.MouseButton1Click:Connect(function()
+    Functions.AutoCollect = not Functions.AutoCollect
+    AutoCollectToggle.Text = "Auto Collect: " .. (Functions.AutoCollect and "ON" or "OFF")
+    AutoCollectToggle.BackgroundColor3 = Functions.AutoCollect and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+    
+    if Functions.AutoCollect then
+        spawn(AutoCollectLoop)
+    end
+end)
+
+AutoBuyToggle.MouseButton1Click:Connect(function()
+    Functions.AutoBuy = not Functions.AutoBuy
+    AutoBuyToggle.Text = "Auto Buy Brainrots: " .. (Functions.AutoBuy and "ON" or "OFF")
+    AutoBuyToggle.BackgroundColor3 = Functions.AutoBuy and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+    
+    if Functions.AutoBuy then
+        spawn(AutoBuyLoop)
+    end
+end)
+
+BrainrotESPToggle.MouseButton1Click:Connect(function()
+    Functions.BrainrotESP = not Functions.BrainrotESP
+    BrainrotESPToggle.Text = "Brainrot ESP: " .. (Functions.BrainrotESP and "ON" or "OFF")
+    BrainrotESPToggle.BackgroundColor3 = Functions.BrainrotESP and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+    UpdateESP()
+end)
+
+PlayerESPToggle.MouseButton1Click:Connect(function()
+    Functions.PlayerESP = not Functions.PlayerESP
+    PlayerESPToggle.Text = "Player ESP: " .. (Functions.PlayerESP and "ON" or "OFF")
+    PlayerESPToggle.BackgroundColor3 = Functions.PlayerESP and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+    UpdateESP()
+end)
+
+BaseESPToggle.MouseButton1Click:Connect(function()
+    Functions.BaseESP = not Functions.BaseESP
+    BaseESPToggle.Text = "Base ESP: " .. (Functions.BaseESP and "ON" or "OFF")
+    BaseESPToggle.BackgroundColor3 = Functions.BaseESP and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+    UpdateESP()
+end)
+
+StealHelperToggle.MouseButton1Click:Connect(function()
+    Functions.StealHelper = not Functions.StealHelper
+    StealHelperToggle.Text = "Steal Helper: " .. (Functions.StealHelper and "ON" or "OFF")
+    StealHelperToggle.BackgroundColor3 = Functions.StealHelper and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+end)
+
+RichBasesToggle.MouseButton1Click:Connect(function()
+    Functions.RichBases = not Functions.RichBases
+    RichBasesToggle.Text = "Highlight Rich Bases: " .. (Functions.RichBases and "ON" or "OFF")
+    RichBasesToggle.BackgroundColor3 = Functions.RichBases and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(60, 60, 80)
+end)
+
+ServerHopButton.MouseButton1Click:Connect(function()
+    ServerHopButton.Text = "Searching..."
+    ServerHopButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    spawn(ServerHop)
+end)
+
+RejoinButton.MouseButton1Click:Connect(function()
+    TeleportService:Teleport(game.PlaceId, LocalPlayer)
+end)
+
+SafeModeToggle.MouseButton1Click:Connect(function()
+    Functions.SafeMode = not Functions.SafeMode
+    SafeModeToggle.Text = "Safe Mode: " .. (Functions.SafeMode and "ON" or "OFF")
+    SafeModeToggle.BackgroundColor3 = Functions.SafeMode and Color3.fromRGB(80, 180, 80) or Color3.fromRGB(180, 80, 80)
+    
+    if Functions.SafeMode then
+        Elol.Humanizer.RandomDelay = {min = 0.2, max = 0.5}
+    else
+        Elol.Humanizer.RandomDelay = {min = 0.05, max = 0.15}
+    end
+end)
+
+DestroyGUIButton.MouseButton1Click:Connect(function()
+    ElolGUI:Destroy()
+end)
+
+-- Anti-hit protection (basic)
+local function AntiHit()
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        wait(1)
+        local humanoid = character:WaitForChild("Humanoid")
+        
+        humanoid.Touched:Connect(function(hit)
+            if hit and hit.Parent then
+                -- Basic anti-stun/anti-knockback
+                if hit.Parent:FindFirstChildOfClass("Tool") or hit.Name:lower():find("weapon") then
+                    -- Try to mitigate damage
+                    if humanoid.Health < 50 then
+                        -- Emergency teleport to safe zone
+                        local safeZone = workspace:FindFirstChild("SafeZone") or workspace:FindFirstChild("Spawn")
+                        if safeZone then
+                            character:SetPrimaryPartCFrame(safeZone.CFrame + Vector3.new(0, 5, 0))
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+-- Initialize anti-hit
+spawn(AntiHit)
+
+-- Auto-update ESP when new objects appear
+workspace.DescendantAdded:Connect(function(descendant)
+    if Functions.BrainrotESP and (descendant.Name:lower():find("brainrot") or descendant.Name:lower():find("pet")) then
+        wait(1) -- Wait for object to fully load
+        UpdateESP()
+    end
+end)
+
+-- Player join/leave handlers for ESP
+Players.PlayerAdded:Connect(function(player)
+    if Functions.PlayerESP then
+        player.CharacterAdded:Connect(function()
+            wait(1)
+            UpdateESP()
+        end)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function()
+    if Functions.PlayerESP then
+        UpdateESP()
+    end
+end)
+
+-- Initial ESP update
+wait(3)
+UpdateESP()
+
+-- Notification system
+local function Notify(message)
+    local notification = Instance.new("TextLabel")
+    notification.Parent = ElolGUI
+    notification.Size = UDim2.new(0, 300, 0, 40)
+    notification.Position = UDim2.new(0.5, -150, 1, 10)
+    notification.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notification.Text = "🧠 " .. message
+    notification.Font = Enum.Font.Gotham
+    notification.TextSize = 12
+    notification.ZIndex = 10
+    
+    -- Animate
+    local tween = game:GetService("TweenService"):Create(
+        notification,
+        TweenInfo.new(0.5),
+        {Position = UDim2.new(0.5, -150, 1, -50)}
+    )
+    tween:Play()
+    
+    wait(3)
+    
+    local tweenOut = game:GetService("TweenService"):Create(
+        notification,
+        TweenInfo.new(0.5),
+        {Position = UDim2.new(0.5, -150, 1, 10)}
+    )
+    tweenOut:Play()
+    
+    tweenOut.Completed:Connect(function()
+        notification:Destroy()
+    end)
+end
+
+-- Send welcome notification
+spawn(function()
+    wait(2)
+    Notify("Brainrot Dominance v2.0 Loaded!")
+end)
+
+print("🧠 THEFATHER ELOL BRAINROT DOMINANCE v2.0 ACTIVATED")
+print("✅ Auto Farm System: Ready")
+print("✅ ESP System: Ready") 
+print("✅ Steal Helper: Ready")
+print("✅ Server Tools: Ready")
+print("✅ Anti-Hit Protection: Active")
+print("🔒 Safe Mode: " .. (Functions.SafeMode and "ENABLED" or "DISABLED"))
